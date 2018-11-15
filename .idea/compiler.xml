@@ -7,18 +7,26 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="ly-gateway" />
+        <module name="ly-item-interface" />
+        <module name="ly-item-service" />
         <module name="ly-registry" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="leyou" target="1.8" />
       <module name="ly-gateway" target="1.8" />
+      <module name="ly-item" target="1.8" />
+      <module name="ly-item-interface" target="1.8" />
+      <module name="ly-item-service" target="1.8" />
       <module name="ly-registry" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="ly-gateway" options="-parameters" />
+      <module name="ly-item" options="-parameters" />
+      <module name="ly-item-interface" options="-parameters" />
+      <module name="ly-item-service" options="-parameters" />
       <module name="ly-registry" options="-parameters" />
     </option>
   </component>

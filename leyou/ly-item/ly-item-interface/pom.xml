@@ -11,6 +11,18 @@
 
     <groupId>com.leyou.service</groupId>
     <artifactId>ly-item-interface</artifactId>
-
+<dependencies>
+    <dependency>
+        <groupId>javax.persistence</groupId>
+        <artifactId>persistence-api</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/tk.mybatis/mapper-core -->
+    <dependency>
+        <groupId>tk.mybatis</groupId>
+        <artifactId>mapper-core</artifactId>
+        <version>1.0.4</version>
+    </dependency>
+</dependencies>
 
 </project>

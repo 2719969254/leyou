@@ -3,7 +3,7 @@ package com.leyou.item.web;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
 import com.leyou.item.pojo.Item;
-import com.leyou.item.server.ItemService;
+import com.leyou.item.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

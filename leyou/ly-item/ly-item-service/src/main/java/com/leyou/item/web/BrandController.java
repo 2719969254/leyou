@@ -19,7 +19,6 @@ import java.util.List;
 @RequestMapping("brand")
 public class BrandController {
 	private final BrandService brandService;
-
 	@Autowired
 	public BrandController(BrandService brandService) {
 		this.brandService = brandService;
@@ -38,5 +37,9 @@ public class BrandController {
 	public ResponseEntity<Void> saveBrand(Brand brand, @RequestParam("cids") List<Long> cids){
 		brandService.saveBrand(brand,cids);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+	@GetMapping("/cid/{cid}")
+	public ResponseEntity<List<Brand>> queryBrandByCid(@PathVariable(value = "cid")Long cid){
+		return ResponseEntity.ok(brandService.queryBrandByCid(cid));
 	}
 }

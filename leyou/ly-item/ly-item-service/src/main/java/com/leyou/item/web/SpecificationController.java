@@ -26,8 +26,8 @@ public class SpecificationController {
 
 	/**
 	 * 根据分类id查询规格组
-	 * @param cid
-	 * @return
+	 * @param cid 分类id
+	 * @return 规格组参数
 	 */
 	@GetMapping("groups/{cid}")
 	public ResponseEntity<List<SpecGroup>> queryGroupByCid(@PathVariable("cid")Long cid){
@@ -35,12 +35,16 @@ public class SpecificationController {
 	}
 
 	/**
-	 * 根据组id查询参数
-	 * @param gid
-	 * @return
+	 * 根据id查询参数集合
+	 * @param gid 组id
+	 * @param cid 分类id
+	 * @return 参数集合
 	 */
 	@GetMapping("params")
-	public ResponseEntity<List<SpecParam>> queryParamByCid(@RequestParam("gid")Long gid){
-		return ResponseEntity.ok(specificationService.queryParamByGid(gid));
+	public ResponseEntity<List<SpecParam>> queryParam(
+			@RequestParam(value = "gid",required = false)Long gid,
+			@RequestParam(value = "cid",required = false)Long cid
+	){
+		return ResponseEntity.ok(specificationService.queryParamByGid(gid,cid));
 	}
 }

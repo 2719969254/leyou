@@ -43,7 +43,9 @@ public class SpecificationController {
 	@GetMapping("params")
 	public ResponseEntity<List<SpecParam>> queryParam(
 			@RequestParam(value = "gid",required = false)Long gid,
-			@RequestParam(value = "cid",required = false)Long cid
+			@RequestParam(value = "cid",required = false)Long cid,
+			@RequestParam(value = "searching",required = false)Long searching
+
 	){
 		return ResponseEntity.ok(specificationService.queryParamByGid(gid,cid));
 	}

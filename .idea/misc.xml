@@ -8,10 +8,12 @@
       <list>
         <option value="$PROJECT_DIR$/leyou/pom.xml" />
         <option value="$PROJECT_DIR$/leyou/ly-registry/pom.xml" />
+        <option value="$PROJECT_DIR$/leyou/leyou-search/pom.xml" />
+        <option value="$PROJECT_DIR$/leyou/ly-search/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager">
+  <component name="ProjectRootManager" version="2" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

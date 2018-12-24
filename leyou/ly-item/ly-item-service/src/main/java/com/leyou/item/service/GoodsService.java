@@ -17,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -123,8 +120,72 @@ public class GoodsService {
 			stocks.add(stock);
 		}
 		//批量新增库存
-		stockMapper.insertList(stocks);
+		int count = stockMapper.insertList(stocks);
+		if (count != stocks.size()) {
+			throw new LyException(ExceptionEnum.GOODS_NOT_FOUND);
+		}
 
 
 	}
+
+	public SpuDetail querySpuDetailById(Long id) {
+		SpuDetail spuDetail = spuDetailMapper.selectByPrimaryKey(id);
+		if (spuDetail == null) {
+			throw new LyException(ExceptionEnum.GOODS_DETAIL_NOT_FOUND);
+		}
+		return spuDetail;
+	}
+
+	public List<Sku> querySkuBySpuId(Long supId) {
+		//查询sku
+		Sku record = new Sku();
+		record.setSpuId(supId);
+		List<Sku> skuList = skuMapper.select(record);
+		if(CollectionUtils.isEmpty(skuList)){
+			throw new LyException(ExceptionEnum.GOOD_SPU_NOT_FOUND);
+		}
+		//查询库存
+		/*for (Sku sku : skuList) {
+			Stock stock = stockMapper.selectByPrimaryKey(sku.getId());
+			if (stock == null) {
+				throw new LyException(ExceptionEnum.GOOD_STOCK_NOT_FOUND);
+			}
+			sku.setStock(stock.getStock());
+		}*/
+		List<Long> ids = skuList.stream().map(Sku::getId).collect(Collectors.toList());
+		List<Stock> stockList = stockMapper.selectByIdList(ids);
+		if (CollectionUtils.isEmpty(stockList)) {
+			throw new LyException(ExceptionEnum.GOOD_STOCK_NOT_FOUND);
+		}
+		//我们把stock变成一个map，其key是sku的id，值是库存值
+		Map<Long, Long> stockMap = stockList.stream().collect(Collectors.toMap(Stock::getSkuId, Stock::getStock));
+		skuList.forEach(sku -> sku.setStock(stockMap.get(sku.getId())));
+		return skuList;
+	}
+
+
+
+	@Transactional(rollbackFor = LyException.class)
+	public void updateGoods(Spu spu) {
+		Sku sku = new Sku();
+		sku.setSpuId(spu.getId());
+		//查询sku
+		List<Sku> skuList = skuMapper.select(sku);
+		if (!CollectionUtils.isEmpty(skuList)) {
+			skuMapper.delete(sku);
+			List<Long> ids = skuList.stream().map(Sku::getId).collect(Collectors.toList());
+			stockMapper.deleteByIdList(ids);
+
+		}
+		//修改spu
+		spu.setValid(null);
+		spu.setSaleable(null);
+		spu.setLastUpdateTime(null);
+		spu.setCreateTime(null);
+		spuMapper.updateByPrimaryKeySelective(spu);
+		saveGoods(spu);
+	}
+
+
+
 }

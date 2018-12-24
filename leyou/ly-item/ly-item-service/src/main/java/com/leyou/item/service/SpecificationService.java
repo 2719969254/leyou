@@ -21,12 +21,12 @@ import java.util.List;
 public class SpecificationService {
 	private final SpecGroupMapper specGroupMapper;
 	private final SpecParamMapper specParamMapper;
+
 	@Autowired
 	public SpecificationService(SpecGroupMapper specGroupMapper, SpecParamMapper specParamMapper) {
 		this.specGroupMapper = specGroupMapper;
 		this.specParamMapper = specParamMapper;
 	}
-
 
 
 	public List<SpecGroup> queryGroupByCid(Long cid) {
@@ -42,12 +42,13 @@ public class SpecificationService {
 		return list;
 	}
 
-	public List<SpecParam> queryParamByGid(Long gid,Long cid) {
+	public List<SpecParam> queryParamByGid(Long gid, Long cid, Boolean searching) {
 		SpecParam specParam = new SpecParam();
 		specParam.setGroupId(gid);
 		specParam.setCid(cid);
+		specParam.setSearching(searching);
 		List<SpecParam> list = specParamMapper.select(specParam);
-		if(CollectionUtils.isEmpty(list)){
+		if (CollectionUtils.isEmpty(list)) {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
 		return list;

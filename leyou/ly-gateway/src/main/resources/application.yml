@@ -17,6 +17,7 @@ zuul:
   retryable: true
   routes:
     item-service: /item/** # 将商品微服务映射到/item/
+    search-service: /search/** # 将商品微服务映射到/item/
     upload-service:
       path: /upload/**
       serviceId: upload-service

@@ -68,7 +68,7 @@ public class BrandService {
 			}
 		}
 	}
-	Brand queryById(Long id){
+	public Brand queryById(Long id){
 		Brand brand = brandMapper.selectByPrimaryKey(id);
 		if (brand == null) {
 			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);

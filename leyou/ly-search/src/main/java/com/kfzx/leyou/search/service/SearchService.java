@@ -6,13 +6,19 @@ import com.kfzx.leyou.search.client.CategoryClient;
 import com.kfzx.leyou.search.client.GoodsClient;
 import com.kfzx.leyou.search.client.SpecificationClient;
 import com.kfzx.leyou.search.pojo.Goods;
+import com.kfzx.leyou.search.pojo.SearchRequest;
+import com.kfzx.leyou.search.repository.GoodsRepository;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
-import com.leyou.common.utils.JsonUtils;
+import com.leyou.common.vo.PageResult;
 import com.leyou.item.pojo.*;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -27,23 +33,30 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SearchService {
-	@Autowired
-	private CategoryClient categoryClient;
-	@Autowired
-	private GoodsClient goodsClient;
-	@Autowired
-	private BrandClient brandClient;
+	private final CategoryClient categoryClient;
+	private final GoodsClient goodsClient;
+	private final BrandClient brandClient;
 
-	@Autowired
-	private SpecificationClient specificationClient;
+	private final SpecificationClient specificationClient;
+
+	private final GoodsRepository goodsRepository;
 
 	private ObjectMapper mapper = new ObjectMapper();
+
+	@Autowired
+	public SearchService(CategoryClient categoryClient, GoodsClient goodsClient, BrandClient brandClient, SpecificationClient specificationClient, GoodsRepository goodsRepository) {
+		this.categoryClient = categoryClient;
+		this.goodsClient = goodsClient;
+		this.brandClient = brandClient;
+		this.specificationClient = specificationClient;
+		this.goodsRepository = goodsRepository;
+	}
 
 	public Goods buildGoods(Spu spu) throws IOException {
 		Long spuId = spu.getId();
 		//查询分类
 		List<Category> categories = categoryClient.queryCategoryByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
-		if (CollectionUtils.isEmpty(categories)){
+		if (CollectionUtils.isEmpty(categories)) {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
 		List<String> names = categories.stream().map(Category::getName).collect(Collectors.toList());
@@ -54,7 +67,7 @@ public class SearchService {
 			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);
 		}
 		//搜索字段
-		String all = spu.getTitle()+StringUtils.join(names," ")+brand.getName();
+		String all = spu.getTitle() + StringUtils.join(names, " ") + brand.getName();
 
 		//查询sku
 		List<Sku> skuList = goodsClient.querySkuBySpuId(spu.getId());
@@ -67,7 +80,7 @@ public class SearchService {
 		Set<Long> priceList = new HashSet<>();
 		List<Map<String, Object>> skus = new ArrayList<>();
 		for (Sku sku : skuList) {
-			Map<String, Object> skuMap = new HashMap<>();
+			Map<String, Object> skuMap = new HashMap<>(100);
 			skuMap.put("id", sku.getId());
 			skuMap.put("title", sku.getTitle());
 			skuMap.put("price", sku.getPrice());
@@ -82,7 +95,7 @@ public class SearchService {
 			throw new LyException(ExceptionEnum.SPEC_PARAM_NOT_FOUND);
 		}
 		//查询商品详情
-		SpuDetail spuDetail = goodsClient.querySpuDetailById(spuId);
+		goodsClient.querySpuDetailById(spuId);
 		//获取通用规格
 		//获取特有规格
 		//规格参数
@@ -102,5 +115,26 @@ public class SearchService {
 		return goods;
 	}
 
+	public PageResult<Goods> search(SearchRequest request) {
+		int page = request.getPage() - 1;
+		int size = request.getSize();
+		//创建查询构建器
+		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+		//结果过滤
+		nativeSearchQueryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{"id", "subTitle", "skus"}, null));
+		//分页
+		nativeSearchQueryBuilder.withPageable(PageRequest.of(page, size));
+		//过滤
+		nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("all", request.getKey()));
 
+		//查询
+		Page<Goods> search = goodsRepository.search(nativeSearchQueryBuilder.build());
+		//解析结果
+		long totalElements = search.getTotalElements();
+		long totalPages = search.getTotalPages();
+		List<Goods> content = search.getContent();
+
+		return new PageResult<>(totalElements, totalPages, content);
+
+	}
 }

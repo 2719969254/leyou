@@ -13,10 +13,12 @@ import com.leyou.common.exception.LyException;
 import com.leyou.common.vo.PageResult;
 import com.leyou.item.pojo.*;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -105,8 +107,6 @@ public class SearchService {
 		//获取通用规格
 		//获取特有规格
 		//规格参数
-
-
 		Goods goods = new Goods();
 		goods.setId(spu.getId());
 		goods.setSubTitle(spu.getSubTitle());
@@ -122,6 +122,11 @@ public class SearchService {
 	}
 
 	public PageResult<Goods> search(SearchRequest request) {
+		String key = request.getKey();
+		//判断是否有查询条件，如果没有直接返回null
+		if (StringUtils.isEmpty(key)) {
+			return null;
+		}
 		int page = request.getPage() - 1;
 		int size = request.getSize();
 		//创建查询构建器
@@ -130,8 +135,9 @@ public class SearchService {
 		nativeSearchQueryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{"id", "subTitle", "skus"}, null));
 		//分页
 		nativeSearchQueryBuilder.withPageable(PageRequest.of(page, size));
-		//过滤
-		nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("all", request.getKey()));
+		//搜索条件
+		QueryBuilder basicQuery = QueryBuilders.matchQuery("all", key);
+		nativeSearchQueryBuilder.withQuery(basicQuery);
 
 		//聚合分类和品牌信息
 		//聚合分类
@@ -153,8 +159,67 @@ public class SearchService {
 		List<Category> categories = parseCategoryAgg(aggregations.get(categoryAggName));
 		List<Brand> brands = parseBrandAgg(aggregations.get(brandAggName));
 
+		//完成规格参数聚合
+		List<Map<String, Object>> specs = new ArrayList<>(100);
+
+		if (categories != null && categories.size() == 1) {
+			//商品分类唯一，可以聚合规格参数
+			specs = buildSpecificationAgg(categories.get(0).getId(), basicQuery);
+		}
+
 		return new SearchResult(totalElements, totalPages, content, categories, brands);
 
+	}
+
+	private List<Map<String, Object>> buildSpecificationAgg(Long cid, QueryBuilder basicQuery) {
+		try {
+			List<Map<String, Object>> specs = new ArrayList<>(100);
+			//1先知道对谁聚合
+			//1.1查询需要聚合的规格参数
+			List<SpecParam> params = specificationClient.queryParam(null, cid, true);
+			//2聚合
+			NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+			//2.1带上查询条件
+			nativeSearchQueryBuilder.withQuery(basicQuery);
+			//2.2聚合
+			for (SpecParam param : params) {
+				String name = param.getName();
+				nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(name).field("specs." + name + ".keyword"));
+			}
+			//获取结果
+			AggregatedPage<Goods> result = elasticsearchTemplate.queryForPage(nativeSearchQueryBuilder.build(), Goods.class);
+		/*Map<String, Aggregation> aggs = this.elasticsearchTemplate.query(nativeSearchQueryBuilder.build(),
+				SearchResponse::getAggregations).asMap();*/
+
+			//解析结果
+			Aggregations aggregations = result.getAggregations();
+			for (SpecParam param : params) {
+				//规格参数名
+				String name = param.getName();
+				StringTerms terms = aggregations.get(name);
+				//准备map
+				Map<String, Object> map = new HashMap<>(100);
+				map.put("k", name);
+				map.put("options", terms.getBuckets()
+						.stream().map(b -> b.getKeyAsString()).collect(Collectors.toList()));
+
+				specs.add(map);
+			}
+
+			// 解析聚合结果
+		/*params.forEach(param -> {
+			Map<String, Object> spec = new HashMap<>();
+			String key = param.getName();
+			spec.put("k", key);
+			StringTerms terms = (StringTerms) aggs.get(key);
+			spec.put("options", terms.getBuckets().stream().map(StringTerms.Bucket::getKeyAsString));
+			specs.add(spec);
+		});*/
+			return specs;
+
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private List<Brand> parseBrandAgg(LongTerms terms) {

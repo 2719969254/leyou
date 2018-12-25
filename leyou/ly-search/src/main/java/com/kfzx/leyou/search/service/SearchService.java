@@ -7,16 +7,20 @@ import com.kfzx.leyou.search.client.GoodsClient;
 import com.kfzx.leyou.search.client.SpecificationClient;
 import com.kfzx.leyou.search.pojo.Goods;
 import com.kfzx.leyou.search.pojo.SearchRequest;
-import com.kfzx.leyou.search.repository.GoodsRepository;
+import com.kfzx.leyou.search.pojo.SearchResult;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
 import com.leyou.common.vo.PageResult;
 import com.leyou.item.pojo.*;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -39,18 +43,20 @@ public class SearchService {
 
 	private final SpecificationClient specificationClient;
 
-	private final GoodsRepository goodsRepository;
+	private final ElasticsearchTemplate elasticsearchTemplate;
 
 	private ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
-	public SearchService(CategoryClient categoryClient, GoodsClient goodsClient, BrandClient brandClient, SpecificationClient specificationClient, GoodsRepository goodsRepository) {
+	public SearchService(CategoryClient categoryClient, GoodsClient goodsClient, BrandClient brandClient,
+	                     SpecificationClient specificationClient, ElasticsearchTemplate elasticsearchTemplate) {
 		this.categoryClient = categoryClient;
 		this.goodsClient = goodsClient;
 		this.brandClient = brandClient;
 		this.specificationClient = specificationClient;
-		this.goodsRepository = goodsRepository;
+		this.elasticsearchTemplate = elasticsearchTemplate;
 	}
+
 
 	public Goods buildGoods(Spu spu) throws IOException {
 		Long spuId = spu.getId();
@@ -127,14 +133,51 @@ public class SearchService {
 		//过滤
 		nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("all", request.getKey()));
 
+		//聚合分类和品牌信息
+		//聚合分类
+		String categoryAggName = "category_agg";
+		nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(categoryAggName).field("cid3"));
+		//聚合品牌
+		String brandAggName = "brand_agg";
+		nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(brandAggName).field("brandId"));
+
 		//查询
-		Page<Goods> search = goodsRepository.search(nativeSearchQueryBuilder.build());
-		//解析结果
+		//Page<Goods> search = goodsRepository.search(nativeSearchQueryBuilder.build());
+		AggregatedPage<Goods> search = elasticsearchTemplate.queryForPage(nativeSearchQueryBuilder.build(), Goods.class);
+		//解析分页结果
 		long totalElements = search.getTotalElements();
 		long totalPages = search.getTotalPages();
 		List<Goods> content = search.getContent();
+		//解析聚合结果
+		Aggregations aggregations = search.getAggregations();
+		List<Category> categories = parseCategoryAgg(aggregations.get(categoryAggName));
+		List<Brand> brands = parseBrandAgg(aggregations.get(brandAggName));
 
-		return new PageResult<>(totalElements, totalPages, content);
+		return new SearchResult(totalElements, totalPages, content, categories, brands);
 
+	}
+
+	private List<Brand> parseBrandAgg(LongTerms terms) {
+		try {
+			List<Long> ids = terms.getBuckets()
+					.stream().map(b -> b.getKeyAsNumber().longValue())
+					.collect(Collectors.toList());
+			return brandClient.queryBrandByIds(ids);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private List<Category> parseCategoryAgg(LongTerms terms) {
+		try {
+			List<Long> ids = terms.getBuckets()
+					.stream().map(b -> b.getKeyAsNumber().longValue())
+					.collect(Collectors.toList());
+			return categoryClient.queryCategoryByIds(ids);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

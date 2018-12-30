@@ -187,5 +187,17 @@ public class GoodsService {
 	}
 
 
+	public Spu querySpuById(Long id) {
+		//查询spu
+		Spu spu = spuMapper.selectByPrimaryKey(id);
+		if (spu == null) {
+			throw new LyException(ExceptionEnum.GOODS_NOT_FOUND);
+		}
+		//查询sku
+		spu.setSkus(querySkuBySpuId(id));
 
+		//查询Detail
+		spu.setSpuDetail(querySpuDetailById(id));
+		return spu;
+	}
 }

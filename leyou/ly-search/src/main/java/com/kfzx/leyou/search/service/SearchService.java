@@ -1,5 +1,6 @@
 package com.kfzx.leyou.search.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kfzx.leyou.search.client.BrandClient;
 import com.kfzx.leyou.search.client.CategoryClient;
@@ -10,9 +11,14 @@ import com.kfzx.leyou.search.pojo.SearchRequest;
 import com.kfzx.leyou.search.pojo.SearchResult;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
+import com.leyou.common.utils.JsonUtils;
 import com.leyou.common.vo.PageResult;
 import com.leyou.item.pojo.*;
+import lombok.val;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -103,9 +109,37 @@ public class SearchService {
 			throw new LyException(ExceptionEnum.SPEC_PARAM_NOT_FOUND);
 		}
 		//查询商品详情
-		goodsClient.querySpuDetailById(spuId);
+		SpuDetail spuDetail = goodsClient.querySpuDetailById(spuId);
 		//获取通用规格
+		Map<Long, String> genericSpec = JsonUtils.parseMap(spuDetail.getGenericSpec(), Long.class, String.class);
 		//获取特有规格
+		Map<Long, List<String>> specialSpec = JsonUtils.nativeRead(spuDetail.getSpecialSpec(), new TypeReference<Map<Long, List<String>>>() {
+		});
+
+		//规格参数，key是规格参数的名字，值是规格参数的值
+		Map<String, Object> specs = new HashMap<>(100);
+		for (SpecParam param : params) {
+			//规格名称
+			String key = param.getName();
+			Object value = "";
+			//判断是否是通用规格参数
+			if (param.getGeneric()) {
+				assert genericSpec != null;
+				value = genericSpec.get(param.getId());
+				//判断是否为数值类型
+				if (param.getNumeric()) {
+					// 分段
+					value = chooseSegment(value.toString(), param);
+				}
+			} else {
+				assert specialSpec != null;
+				value = specialSpec.get(param.getId());
+			}
+			//存入map
+			specs.put(key, value);
+		}
+
+
 		//规格参数
 		Goods goods = new Goods();
 		goods.setId(spu.getId());
@@ -118,7 +152,36 @@ public class SearchService {
 		goods.setAll(all);
 		goods.setPrice(priceList);
 		goods.setSkus(mapper.writeValueAsString(skus));
+		goods.setSpecs(specs);
 		return goods;
+	}
+
+
+	private String chooseSegment(String value, SpecParam p) {
+		double val = NumberUtils.toDouble(value);
+		String result = "其它";
+		// 保存数值段
+		for (String segment : p.getSegments().split(",")) {
+			String[] segs = segment.split("-");
+			// 获取数值范围
+			double begin = NumberUtils.toDouble(segs[0]);
+			double end = Double.MAX_VALUE;
+			if (segs.length == 2) {
+				end = NumberUtils.toDouble(segs[1]);
+			}
+			// 判断是否在范围内
+			if (val >= begin && val < end) {
+				if (segs.length == 1) {
+					result = segs[0] + p.getUnit() + "以上";
+				} else if (begin == 0) {
+					result = segs[1] + p.getUnit() + "以下";
+				} else {
+					result = segment + p.getUnit();
+				}
+				break;
+			}
+		}
+		return result;
 	}
 
 	public PageResult<Goods> search(SearchRequest request) {
@@ -136,7 +199,7 @@ public class SearchService {
 		//分页
 		nativeSearchQueryBuilder.withPageable(PageRequest.of(page, size));
 		//搜索条件
-		QueryBuilder basicQuery = QueryBuilders.matchQuery("all", key);
+		QueryBuilder basicQuery = buildBasicQueryWithFilter(request);
 		nativeSearchQueryBuilder.withQuery(basicQuery);
 
 		//聚合分类和品牌信息
@@ -167,7 +230,7 @@ public class SearchService {
 			specs = buildSpecificationAgg(categories.get(0).getId(), basicQuery);
 		}
 
-		return new SearchResult(totalElements, totalPages, content, categories, brands);
+		return new SearchResult(totalElements, totalPages, content, categories, brands,specs);
 
 	}
 
@@ -245,4 +308,32 @@ public class SearchService {
 			return null;
 		}
 	}
+
+
+	/**
+	 * 	构建基本查询条件
+	 */
+	private QueryBuilder buildBasicQueryWithFilter(SearchRequest request) {
+		//创建布尔
+		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+		// 基本查询条件
+		queryBuilder.must(QueryBuilders.matchQuery("all", request.getKey()));
+		// 整理过滤条件
+		Map<String, String> map = request.getFilter();
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+			// 商品分类和品牌要特殊处理
+			if (key != "cid3" && key != "brandId") {
+				key = "specs." + key + ".keyword";
+			}
+			// 字符串类型，进行term查询
+			queryBuilder.filter(QueryBuilders.termQuery(key, value));
+		}
+		// 添加过滤条件
+		//queryBuilder.filter(filterQueryBuilder);
+		return queryBuilder;
+	}
+
+
 }

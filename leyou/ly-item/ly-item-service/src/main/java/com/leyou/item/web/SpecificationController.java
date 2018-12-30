@@ -51,4 +51,15 @@ public class SpecificationController {
 	){
 		return ResponseEntity.ok(specificationService.queryParamByGid(gid,cid,searching));
 	}
+
+	/**
+	 * 根据分类查询规格组及组内参数
+	 * @param cid
+	 * @return
+	 */
+	@GetMapping("group")
+	public ResponseEntity<List<SpecGroup>> queryListByCid(@PathVariable("cid") Long cid){
+		return ResponseEntity.ok(specificationService.queryListByCid(cid));
+	}
+
 }

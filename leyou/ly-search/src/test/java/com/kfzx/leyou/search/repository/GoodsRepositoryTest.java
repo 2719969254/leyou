@@ -30,6 +30,7 @@ public class GoodsRepositoryTest {
 	public void testCreateIndex(){
 		elasticsearchTemplate.createIndex(Goods.class);
 		elasticsearchTemplate.putMapping(Goods.class);
+		// elasticsearchTemplate.deleteIndex(Goods.class);
 	}
 
 	@Test

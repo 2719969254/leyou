@@ -10,7 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author VicterTian
@@ -52,5 +56,29 @@ public class SpecificationService {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
 		return list;
+	}
+
+	public List<SpecGroup> queryListByCid(Long cid) {
+		//查询规格组
+		List<SpecGroup> specGroups = queryGroupByCid(cid);
+		//查询当前分类下的参数
+		List<SpecParam> specParams = queryParamByGid(null, cid, null);
+		//先把规格参数变为map，map的key是规格组id，map的值是组下所有参数
+		Map<Long,List<SpecParam>> map = new HashMap<>(100);
+		for (SpecParam param : specParams) {
+			if (!map.containsKey(param.getGroupId())){
+				//这个组是第一次出现
+				map.put(param.getGroupId(),new ArrayList<>());
+			}
+			//不管是不是第一次出现，都要进行数据填充
+			map.get(param.getGroupId()).add(param);
+		}
+
+		//填充param到group里
+		for (SpecGroup specGroup : specGroups) {
+			specGroup.setParams(specParams);
+		}
+		//填充
+		return specGroups;
 	}
 }

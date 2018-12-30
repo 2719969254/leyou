@@ -30,20 +30,21 @@ public class GoodsController {
 
 	@GetMapping("/spu/page")
 	public ResponseEntity<PageResult<Spu>> querySpuByPage(
-			@RequestParam(value = "page",defaultValue = "1")Integer page,
+			@RequestParam(value = "page", defaultValue = "1") Integer page,
 			@RequestParam(value = "rows", defaultValue = "5") Integer rows,
 			@RequestParam(value = "saleable", required = false) Boolean saleable,
 			@RequestParam(value = "key", required = false) String key) {
 		return ResponseEntity.ok(goodsService.querySpuByPageAndSort(page, rows, saleable, key));
 	}
+
 	@PostMapping("/goods")
-	public ResponseEntity<Void> saveGoods(@RequestBody Spu spu){
+	public ResponseEntity<Void> saveGoods(@RequestBody Spu spu) {
 		goodsService.saveGoods(spu);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
 	@GetMapping("/spu/detail/{id}")
-	public ResponseEntity<SpuDetail> querySpuDetailById(@PathVariable("id") Long id){
+	public ResponseEntity<SpuDetail> querySpuDetailById(@PathVariable("id") Long id) {
 		SpuDetail spuDetail = goodsService.querySpuDetailById(id);
 		if (spuDetail == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -52,7 +53,7 @@ public class GoodsController {
 	}
 
 	@GetMapping("sku/list")
-	public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long id){
+	public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long id) {
 		List<Sku> skuList = goodsService.querySkuBySpuId(id);
 		if (skuList == null || skuList.size() == 0) {
 			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);
@@ -63,6 +64,7 @@ public class GoodsController {
 
 	/**
 	 * 新增商品
+	 *
 	 * @param spu
 	 * @return
 	 */
@@ -78,6 +80,14 @@ public class GoodsController {
 	}
 
 
+	@GetMapping("spu/{id}")
+	public ResponseEntity<Spu> querySpuById(@PathVariable("id") Long id){
+		Spu spu = this.goodsService.querySpuById(id);
+		if(spu == null){
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return ResponseEntity.ok(spu);
+	}
 
 
 }

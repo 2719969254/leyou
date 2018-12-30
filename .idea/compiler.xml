@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -10,6 +11,7 @@
         <module name="ly-gateway" />
         <module name="ly-item-interface" />
         <module name="ly-item-service" />
+        <module name="ly-page" />
         <module name="ly-registry" />
         <module name="ly-search" />
         <module name="lyupload" />
@@ -22,6 +24,7 @@
       <module name="ly-item" target="1.8" />
       <module name="ly-item-interface" target="1.8" />
       <module name="ly-item-service" target="1.8" />
+      <module name="ly-page" target="1.8" />
       <module name="ly-registry" target="1.8" />
       <module name="ly-search" target="1.8" />
       <module name="lyupload" target="1.8" />
@@ -34,6 +37,7 @@
       <module name="ly-item" options="-parameters" />
       <module name="ly-item-interface" options="-parameters" />
       <module name="ly-item-service" options="-parameters" />
+      <module name="ly-page" options="-parameters" />
       <module name="ly-registry" options="-parameters" />
       <module name="ly-search" options="-parameters" />
       <module name="lyupload" options="-parameters" />

@@ -3,6 +3,7 @@ package com.leyou.item.web;
 import com.leyou.item.pojo.Category;
 import com.leyou.item.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +34,13 @@ public class CategoryController {
 	@GetMapping("list/ids")
 	public ResponseEntity<List<Category>> queryCategoryByIds(@RequestParam("ids") List<Long> ids){
 		return ResponseEntity.ok(categoryService.queryByIds(ids));
+	}
+	@GetMapping("all/level")
+	public ResponseEntity<List<Category>> queryAllByCid3(@RequestParam("id") Long id){
+		List<Category> list = categoryService.queryAllByCid3(id);
+		if (list == null || list.size() < 1) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return ResponseEntity.ok(list);
 	}
 }

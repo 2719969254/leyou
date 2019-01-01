@@ -58,7 +58,7 @@ public class SpecificationController {
 	 * @return
 	 */
 	@GetMapping("group")
-	public ResponseEntity<List<SpecGroup>> queryListByCid(@PathVariable("cid") Long cid){
+	public ResponseEntity<List<SpecGroup>> queryListByCid(@RequestParam("cid") Long cid){
 		return ResponseEntity.ok(specificationService.queryListByCid(cid));
 	}
 

@@ -33,8 +33,12 @@ public class GoodsService {
 	private final BrandService brandService;
 	private final StockMapper stockMapper;
 	private final SkuMapper skuMapper;
+
 	@Autowired
-	public GoodsService(SpuDetailMapper spuDetailMapper, SpuMapper spuMapper, CategoryService categoryService, BrandService brandService, StockMapper stockMapper, SkuMapper skuMapper) {
+	public GoodsService(SpuDetailMapper spuDetailMapper, SpuMapper spuMapper,
+	                    CategoryService categoryService, BrandService brandService,
+	                    StockMapper stockMapper, SkuMapper skuMapper
+	) {
 		this.spuDetailMapper = spuDetailMapper;
 		this.spuMapper = spuMapper;
 		this.categoryService = categoryService;
@@ -81,6 +85,7 @@ public class GoodsService {
 			spu.setBname(brandService.queryById(spu.getBrandId()).getName());
 		}
 	}
+
 	@Transactional(rollbackFor = LyException.class)
 	public void saveGoods(Spu spu) {
 		//新增spu
@@ -93,14 +98,13 @@ public class GoodsService {
 		if (insert != 1) {
 			throw new LyException(ExceptionEnum.GOODS_NOT_FOUND);
 		}
-		//新增spudetil
+		//新增spuDetail
 		SpuDetail spuDetail = spu.getSpuDetail();
 		spuDetail.setSpuId(spu.getId());
 		spuDetailMapper.insert(spuDetail);
 
 		//定义库存集合
 		List<Stock> stocks = new ArrayList<>();
-
 
 		//新增sku
 		List<Sku> skus = spu.getSkus();
@@ -124,8 +128,6 @@ public class GoodsService {
 		if (count != stocks.size()) {
 			throw new LyException(ExceptionEnum.GOODS_NOT_FOUND);
 		}
-
-
 	}
 
 	public SpuDetail querySpuDetailById(Long id) {
@@ -141,7 +143,7 @@ public class GoodsService {
 		Sku record = new Sku();
 		record.setSpuId(supId);
 		List<Sku> skuList = skuMapper.select(record);
-		if(CollectionUtils.isEmpty(skuList)){
+		if (CollectionUtils.isEmpty(skuList)) {
 			throw new LyException(ExceptionEnum.GOOD_SPU_NOT_FOUND);
 		}
 		//查询库存
@@ -163,8 +165,6 @@ public class GoodsService {
 		return skuList;
 	}
 
-
-
 	@Transactional(rollbackFor = LyException.class)
 	public void updateGoods(Spu spu) {
 		Sku sku = new Sku();
@@ -175,7 +175,6 @@ public class GoodsService {
 			skuMapper.delete(sku);
 			List<Long> ids = skuList.stream().map(Sku::getId).collect(Collectors.toList());
 			stockMapper.deleteByIdList(ids);
-
 		}
 		//修改spu
 		spu.setValid(null);
@@ -185,7 +184,6 @@ public class GoodsService {
 		spuMapper.updateByPrimaryKeySelective(spu);
 		saveGoods(spu);
 	}
-
 
 	public Spu querySpuById(Long id) {
 		//查询spu

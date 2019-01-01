@@ -5,7 +5,7 @@ spring:
     name: goods-page
   thymeleaf:
     cache: false
-#  devtools:
+  devtools:
 #    restart:
 #      enabled: true
 #      additional-paths: src/main/java

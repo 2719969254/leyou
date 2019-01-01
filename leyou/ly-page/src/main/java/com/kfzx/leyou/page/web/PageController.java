@@ -12,11 +12,11 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("item")
-public class GoodsController {
+public class PageController {
     private final PageService pageService;
 
     @Autowired
-    public GoodsController(PageService pageService) {
+    public PageController(PageService pageService) {
         this.pageService = pageService;
     }
 
@@ -28,8 +28,8 @@ public class GoodsController {
      */
     @GetMapping("{id}.html")
     public String toItemPage(Model model, @PathVariable("id")Long spuId){
-//        Map<String,Object> attributes = pageService.loadModel(spuId);
-//        model.addAllAttributes(attributes);
+        Map<String,Object> attributes = pageService.loadModel(spuId);
+        model.addAllAttributes(attributes);
         return "item";
     }
 }

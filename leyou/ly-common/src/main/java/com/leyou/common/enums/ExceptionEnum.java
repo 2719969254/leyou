@@ -30,6 +30,7 @@ public enum ExceptionEnum {
 	GOOD_SPU_NOT_FOUND(404,"商品SPU不存在"),
 	GOOD_STOCK_NOT_FOUND(404,"商品库存不存在"),
 	GOOD_SKU_NOT_FOUND(404,"商品SKU不存在"),
+	GOODS_NOT_SALEABLE(404,"商品未上架"),
 	;
 	private Integer code;
 	private String msg;

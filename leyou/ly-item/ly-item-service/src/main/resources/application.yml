@@ -10,6 +10,20 @@ spring:
     hikari:
       maximum-pool-size: 30
       minimum-idle: 10
+  rabbitmq:
+    host: 47.95.234.255
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+    template:
+      retry:
+        enabled: true
+        initial-interval: 10000ms
+        max-interval: 30000ms
+        multiplier: 2
+      exchange: leyou.item.exchange
+    publisher-confirms: true
+
 eureka:
   client:
     service-url:

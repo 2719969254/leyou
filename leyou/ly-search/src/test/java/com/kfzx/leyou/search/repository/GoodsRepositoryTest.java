@@ -51,6 +51,7 @@ public class GoodsRepositoryTest {
 					Goods goods = this.searchService.buildGoods(spu);
 					goodsList.add(goods);
 				} catch (Exception e) {
+					System.out.println("spu.getId() = " + spu.getId());
 					e.printStackTrace();
 					break;
 				}

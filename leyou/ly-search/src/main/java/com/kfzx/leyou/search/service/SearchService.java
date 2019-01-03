@@ -1,5 +1,6 @@
 package com.kfzx.leyou.search.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kfzx.leyou.search.client.BrandClient;
@@ -9,6 +10,7 @@ import com.kfzx.leyou.search.client.SpecificationClient;
 import com.kfzx.leyou.search.pojo.Goods;
 import com.kfzx.leyou.search.pojo.SearchRequest;
 import com.kfzx.leyou.search.pojo.SearchResult;
+import com.kfzx.leyou.search.repository.GoodsRepository;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
 import com.leyou.common.utils.JsonUtils;
@@ -54,6 +56,8 @@ public class SearchService {
 	private final ElasticsearchTemplate elasticsearchTemplate;
 
 	private ObjectMapper mapper = new ObjectMapper();
+	@Autowired
+	private GoodsRepository goodsRepository;
 
 	@Autowired
 	public SearchService(CategoryClient categoryClient, GoodsClient goodsClient, BrandClient brandClient,
@@ -66,7 +70,7 @@ public class SearchService {
 	}
 
 
-	public Goods buildGoods(Spu spu) throws IOException {
+	public Goods buildGoods(Spu spu) {
 		Long spuId = spu.getId();
 		//查询分类
 		List<Category> categories = categoryClient.queryCategoryByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
@@ -86,6 +90,7 @@ public class SearchService {
 		//查询sku
 		List<Sku> skuList = goodsClient.querySkuBySpuId(spu.getId());
 		if (CollectionUtils.isEmpty(skuList)) {
+			System.out.println("___________________________________________"+spu.getId());
 			throw new LyException(ExceptionEnum.GOOD_SKU_NOT_FOUND);
 		}
 
@@ -151,7 +156,11 @@ public class SearchService {
 		goods.setCreateTime(spu.getCreateTime());
 		goods.setAll(all);
 		goods.setPrice(priceList);
-		goods.setSkus(mapper.writeValueAsString(skus));
+		try {
+			goods.setSkus(mapper.writeValueAsString(skus));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 		goods.setSpecs(specs);
 		return goods;
 	}
@@ -336,4 +345,17 @@ public class SearchService {
 	}
 
 
+	public void createIndex(Long spuId) {
+		//查询spu
+		Spu spu = goodsClient.querySpuById(spuId);
+		// 构建goods对象
+		Goods goods = buildGoods(spu);
+		//存入索引库
+		goodsRepository.save(goods);
+
+	}
+
+	public void deleteIndex(Long spuId) {
+		goodsRepository.deleteById(spuId);
+	}
 }

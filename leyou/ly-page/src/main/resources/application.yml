@@ -5,11 +5,16 @@ spring:
     name: goods-page
   thymeleaf:
     cache: false
-  devtools:
+#  devtools:
 #    restart:
 #      enabled: true
 #      additional-paths: src/main/java
 #      exclude: src/main/resources
+  rabbitmq:
+    host: 47.95.234.255
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
 eureka:
   client:
     service-url:

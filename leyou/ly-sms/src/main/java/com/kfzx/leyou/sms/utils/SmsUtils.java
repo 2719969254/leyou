@@ -1,9 +1,12 @@
 package com.kfzx.leyou.sms.utils;
 
 import com.kfzx.leyou.sms.config.SmsProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -16,17 +19,24 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author MR.Tian
  */
+@Slf4j
 @Component
 public class SmsUtils {
+	private static final Long SMS_MIN_INTERVAL_IN_MILLIS = 60000L;
+
 	private final SmsProperties smsProperties;
 
+	private final StringRedisTemplate redisTemplate;
+
 	@Autowired
-	public SmsUtils(SmsProperties smsProperties) {
+	public SmsUtils(SmsProperties smsProperties, StringRedisTemplate redisTemplate) {
 		this.smsProperties = smsProperties;
+		this.redisTemplate = redisTemplate;
 	}
 
 
@@ -35,6 +45,17 @@ public class SmsUtils {
 	 */
 	public String sendCode(String telephone, String signName) {
 		try {
+			String key = smsProperties.getKeyPerfix() + telephone;
+			// 通过redis进行短信限流
+			String lastTime = redisTemplate.opsForValue().get(key);
+			if (StringUtils.isNotBlank(lastTime)) {
+				Long last = Long.valueOf(lastTime);
+				if (System.currentTimeMillis() - last < SMS_MIN_INTERVAL_IN_MILLIS) {
+					log.error("【短信服务】发送短信频率过高,被阻止。手机号码：{}", telephone);
+					return null;
+				}
+			}
+
 			String rod = smsCode();
 			String timestamp = getTimestamp();
 			String sig = getMD5(smsProperties.getAccountSid(), smsProperties.getAuthToken(), timestamp);
@@ -81,12 +102,14 @@ public class SmsUtils {
 				e.printStackTrace();
 			}
 
-
 			String defaultRespCode = "00000";
 			if (defaultRespCode.equals(respCode)) {
+				//发送短信成功后,写入redis，指定生存时间为一分钟
+				redisTemplate.opsForValue().set(key, String.valueOf(System.currentTimeMillis()), 5, TimeUnit.MINUTES);
+				log.info("【短信服务】发送短信成功。手机号码：{},验证码为：{}", telephone, rod);
 				return rod;
 			} else {
-				return defaultRespCode;
+				return respCode;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

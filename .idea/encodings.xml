@@ -12,5 +12,8 @@
     <file url="file://$PROJECT_DIR$/leyou/ly-search" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/leyou/ly-sms" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/leyou/ly-upload" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/leyou/ly-user" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/leyou/ly-user/ly-user-interface" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/leyou/ly-user/ly-user-service" charset="UTF-8" />
   </component>
 </project>

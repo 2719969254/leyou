@@ -42,17 +42,17 @@ public class SmsListener {
 			exchange = @Exchange(name = "leyou.sms.exchange", type = ExchangeTypes.TOPIC),
 			key = {"sms.verify.code"}
 	))
-	public void listenInsertOrUpdate(Map<String,String> msg) {
-		if (CollectionUtils.isEmpty(msg)){
+	public void listenInsertOrUpdate(Map<String, String> msg) {
+		if (CollectionUtils.isEmpty(msg)) {
 			return;
 		}
 		String phone = msg.get("phone");
-		if(StringUtils.isBlank(phone)){
+		if (StringUtils.isBlank(phone)) {
 			return;
 		}
 		//处理消息，对索引库进行修改或增加
 		String code = smsUtils.sendCode(phone, smsProperties.getSignName());
-		log.info("【短信服务】，发送短信验证码，手机号：{}，验证码：{}",phone,code);
+		log.info("【短信服务】，发送短信验证码，手机号：{}，验证码：{}", phone, code);
 	}
 
 }

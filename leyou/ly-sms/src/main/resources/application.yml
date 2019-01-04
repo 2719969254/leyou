@@ -8,9 +8,13 @@ spring:
     username: leyou
     password: leyou
     virtual-host: /leyou
+  redis:
+    host: 47.95.234.255
+    timeout: 5000
 ly:
   sms:
     queryPath: https://api.miaodiyun.com/20150822/industrySMS/sendSMS
     accountSid: 3e1344b7289b43d38d2583417d1ffb41
     authToken: caf2f6494a1b4690a88f25638be07457
     signName: 【乐优商城】
+    keyPerfix: sms:phone

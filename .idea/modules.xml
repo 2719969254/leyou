@@ -12,6 +12,9 @@
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-registry/ly-registry.iml" filepath="$PROJECT_DIR$/leyou/ly-registry/ly-registry.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-search/ly-search.iml" filepath="$PROJECT_DIR$/leyou/ly-search/ly-search.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-sms/ly-sms.iml" filepath="$PROJECT_DIR$/leyou/ly-sms/ly-sms.iml" />
+      <module fileurl="file://$PROJECT_DIR$/leyou/ly-user/ly-user.iml" filepath="$PROJECT_DIR$/leyou/ly-user/ly-user.iml" />
+      <module fileurl="file://$PROJECT_DIR$/leyou/ly-user/ly-user-interface/ly-user-interface.iml" filepath="$PROJECT_DIR$/leyou/ly-user/ly-user-interface/ly-user-interface.iml" />
+      <module fileurl="file://$PROJECT_DIR$/leyou/ly-user/ly-user-service/ly-user-service.iml" filepath="$PROJECT_DIR$/leyou/ly-user/ly-user-service/ly-user-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-upload/lyupload.iml" filepath="$PROJECT_DIR$/leyou/ly-upload/lyupload.iml" />
     </modules>
   </component>

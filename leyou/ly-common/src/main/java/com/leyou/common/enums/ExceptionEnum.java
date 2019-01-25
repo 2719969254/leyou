@@ -34,6 +34,7 @@ public enum ExceptionEnum {
 	GOODS_UPDATE_ERROR(500, "商品修改失败"),
 	INVALID_USER_DATA(400, "用户数据类型不正确"),
 	INVALID_VERIFY_CODE(400, "无效验证码"),
+	INVALID_USER(400, "用户名或密码错误"),
 	;
 	private Integer code;
 	private String msg;

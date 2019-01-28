@@ -98,6 +98,7 @@
             padding-right: 50px;
         }
     </style>
+    <script src="../js/pages/top.js"></script>
 
 </head>
 
@@ -702,7 +703,7 @@
                     // 未登录
                     ly.store.set("carts", carts);
                     // 跳转到购物车列表页
-                    window.location.href = "http://www.leyou.com/cart.html";
+                    window.location.href = "http://127.0.0.1:9002/cart.html";
                 })
             },
             locked(id, i) {
@@ -776,7 +777,7 @@
             }
         },
         components: {
-            lyTop: () => import('/js/pages/top.js')
+            lyTop: () => import('http://127.0.0.1:9002/js/pages/top.js')
         }
     });
 </script>
@@ -794,7 +795,6 @@
         }, function () {
             $("#shopcarlist").hide();
         });
-
     })
 </script>
 <script type="text/javascript" src="http://127.0.0.1:9002/js/model/cartModel.js"></script>

@@ -1,10 +1,11 @@
-package com.leyou.getway.config;
+package com.kfzx.leyou.page.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
 /**
  * @author VicterTian
  * @version V1.0
@@ -17,10 +18,7 @@ public class GlobalCorsConfig {
 		//1.添加CORS配置信息
 		CorsConfiguration config = new CorsConfiguration();
 		//1) 允许的域,不要写*，否则cookie就无法使用了
-		config.addAllowedOrigin("http://127.0.0.1:9001");
-		config.addAllowedOrigin("http://127.0.0.1:9002");
-		config.addAllowedOrigin("http://127.0.0.1:8084");
-
+		config.addAllowedOrigin("http://127.0.0.1:9002/js/pages/top.js");
 		//2) 是否发送Cookie信息
 		config.setAllowCredentials(true);
 		//3) 允许的请求方式

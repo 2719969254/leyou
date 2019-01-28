@@ -27,24 +27,25 @@ public class CategoryService {
 
 	/**
 	 * 根据父节点id查询分类管理
+	 *
 	 * @param pid 父节点id
 	 * @return 分类管理
 	 */
-	public List<Category> queryCategoryListByPid(Long pid){
-		//查询条件，mapper会把对象的非空属性作为查询条件
+	public List<Category> queryCategoryListByPid(Long pid) {
+		// 查询条件，mapper会把对象的非空属性作为查询条件
 		Category category = new Category();
 		category.setParentId(pid);
 		List<Category> list = categoryMapper.select(category);
-		//判断查询结果
+		// 判断查询结果
 		if (CollectionUtils.isEmpty(list)) {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
 		return list;
 	}
 
-	public List<Category> queryByIds(List<Long> ids){
+	public List<Category> queryByIds(List<Long> ids) {
 		List<Category> categories = categoryMapper.selectByIdList(ids);
-		//判断查询结果
+		// 判断查询结果
 		if (CollectionUtils.isEmpty(categories)) {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
@@ -55,6 +56,6 @@ public class CategoryService {
 		Category c3 = this.categoryMapper.selectByPrimaryKey(id);
 		Category c2 = this.categoryMapper.selectByPrimaryKey(c3.getParentId());
 		Category c1 = this.categoryMapper.selectByPrimaryKey(c2.getParentId());
-		return  Arrays.asList(c1,c2,c3);
+		return Arrays.asList(c1, c2, c3);
 	}
 }

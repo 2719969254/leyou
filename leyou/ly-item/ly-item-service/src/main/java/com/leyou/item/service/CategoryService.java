@@ -26,7 +26,7 @@ public class CategoryService {
 	}
 
 	/**
-	 * 根据父节点id查询分类管理
+	 * 根据父节点id查询商品分类
 	 *
 	 * @param pid 父节点id
 	 * @return 分类管理

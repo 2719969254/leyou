@@ -26,6 +26,9 @@ public class CategoryController {
 	public CategoryController(CategoryService categoryService) {
 		this.categoryService = categoryService;
 	}
+	/**
+	 * 根据父节点查询商品分类
+	 */
 	@RequestMapping("list")
 	public ResponseEntity<List<Category>> queryCategoryListByPid(@RequestParam("pid")Long pid){
 		return ResponseEntity.ok(categoryService.queryCategoryListByPid(pid));

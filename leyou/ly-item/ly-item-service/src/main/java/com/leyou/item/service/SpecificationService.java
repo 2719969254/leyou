@@ -33,13 +33,13 @@ public class SpecificationService {
 
 
 	public List<SpecGroup> queryGroupByCid(Long cid) {
-		//查询条件
+		// 查询条件
 		SpecGroup specGroup = new SpecGroup();
 		specGroup.setCid(cid);
-		//开始查询
+		// 开始查询
 		List<SpecGroup> list = specGroupMapper.select(specGroup);
 		if (CollectionUtils.isEmpty(list)) {
-			//如果没查到，则抛出异常
+			// 如果没查到，则抛出异常
 			throw new LyException(ExceptionEnum.SPEC_GROUP_NOT_FOUND);
 		}
 		return list;

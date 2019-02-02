@@ -51,3 +51,4 @@ ly:
       - /api/user/check
       - /api/user/code
       - /api/item
+      - /upload

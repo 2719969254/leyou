@@ -16,11 +16,9 @@ import com.leyou.common.exception.LyException;
 import com.leyou.common.utils.JsonUtils;
 import com.leyou.common.vo.PageResult;
 import com.leyou.item.pojo.*;
-import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -36,7 +34,6 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,38 +53,38 @@ public class SearchService {
 	private final ElasticsearchTemplate elasticsearchTemplate;
 
 	private ObjectMapper mapper = new ObjectMapper();
-	@Autowired
-	private GoodsRepository goodsRepository;
+	private final GoodsRepository goodsRepository;
 
 	@Autowired
 	public SearchService(CategoryClient categoryClient, GoodsClient goodsClient, BrandClient brandClient,
-	                     SpecificationClient specificationClient, ElasticsearchTemplate elasticsearchTemplate) {
+	                     SpecificationClient specificationClient, ElasticsearchTemplate elasticsearchTemplate, GoodsRepository goodsRepository) {
 		this.categoryClient = categoryClient;
 		this.goodsClient = goodsClient;
 		this.brandClient = brandClient;
 		this.specificationClient = specificationClient;
 		this.elasticsearchTemplate = elasticsearchTemplate;
+		this.goodsRepository = goodsRepository;
 	}
 
 
 	public Goods buildGoods(Spu spu) {
 		Long spuId = spu.getId();
-		//查询分类
+		// 查询分类
 		List<Category> categories = categoryClient.queryCategoryByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
 		if (CollectionUtils.isEmpty(categories)) {
 			throw new LyException(ExceptionEnum.CATEGORY_NOT_FOND);
 		}
 		List<String> names = categories.stream().map(Category::getName).collect(Collectors.toList());
 
-		//查询品牌
+		// 查询品牌
 		Brand brand = brandClient.queryBrandById(spu.getBrandId());
 		if (brand == null) {
 			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);
 		}
-		//搜索字段
+		// 搜索字段
 		String all = spu.getTitle() + StringUtils.join(names, " ") + brand.getName();
 
-		//查询sku
+		// 查询sku
 		List<Sku> skuList = goodsClient.querySkuBySpuId(spu.getId());
 		if (CollectionUtils.isEmpty(skuList)) {
 			System.out.println("___________________________________________"+spu.getId());
@@ -108,26 +105,26 @@ public class SearchService {
 			priceList.add(sku.getPrice());
 		}
 
-		//查询规格参数
+		// 查询规格参数
 		List<SpecParam> params = specificationClient.queryParam(null, spu.getCid3(), true);
 		if (CollectionUtils.isEmpty(params)) {
 			throw new LyException(ExceptionEnum.SPEC_PARAM_NOT_FOUND);
 		}
-		//查询商品详情
+		// 查询商品详情
 		SpuDetail spuDetail = goodsClient.querySpuDetailById(spuId);
-		//获取通用规格
+		// 获取通用规格
 		Map<Long, String> genericSpec = JsonUtils.parseMap(spuDetail.getGenericSpec(), Long.class, String.class);
-		//获取特有规格
+		// 获取特有规格
 		Map<Long, List<String>> specialSpec = JsonUtils.nativeRead(spuDetail.getSpecialSpec(), new TypeReference<Map<Long, List<String>>>() {
 		});
 
-		//规格参数，key是规格参数的名字，值是规格参数的值
+		// 规格参数，key是规格参数的名字，值是规格参数的值
 		Map<String, Object> specs = new HashMap<>(100);
 		for (SpecParam param : params) {
-			//规格名称
+			// 规格名称
 			String key = param.getName();
 			Object value = "";
-			//判断是否是通用规格参数
+			// 判断是否是通用规格参数
 			if (param.getGeneric()) {
 				assert genericSpec != null;
 				value = genericSpec.get(param.getId());
@@ -140,12 +137,12 @@ public class SearchService {
 				assert specialSpec != null;
 				value = specialSpec.get(param.getId());
 			}
-			//存入map
+			// 存入map
 			specs.put(key, value);
 		}
 
 
-		//规格参数
+		// 规格参数
 		Goods goods = new Goods();
 		goods.setId(spu.getId());
 		goods.setSubTitle(spu.getSubTitle());
@@ -195,47 +192,47 @@ public class SearchService {
 
 	public PageResult<Goods> search(SearchRequest request) {
 		String key = request.getKey();
-		//判断是否有查询条件，如果没有直接返回null
+		// 判断是否有查询条件，如果没有直接返回null
 		if (StringUtils.isEmpty(key)) {
 			return null;
 		}
 		int page = request.getPage() - 1;
 		int size = request.getSize();
-		//创建查询构建器
+		// 创建查询构建器
 		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
-		//结果过滤
+		// 结果过滤
 		nativeSearchQueryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{"id", "subTitle", "skus"}, null));
-		//分页
+		// 分页
 		nativeSearchQueryBuilder.withPageable(PageRequest.of(page, size));
-		//搜索条件
+		// 搜索条件
 		QueryBuilder basicQuery = buildBasicQueryWithFilter(request);
 		nativeSearchQueryBuilder.withQuery(basicQuery);
 
-		//聚合分类和品牌信息
-		//聚合分类
+		// 聚合分类和品牌信息
+		// 聚合分类
 		String categoryAggName = "category_agg";
 		nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(categoryAggName).field("cid3"));
-		//聚合品牌
+		// 聚合品牌
 		String brandAggName = "brand_agg";
 		nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(brandAggName).field("brandId"));
 
-		//查询
+		// 查询
 		//Page<Goods> search = goodsRepository.search(nativeSearchQueryBuilder.build());
 		AggregatedPage<Goods> search = elasticsearchTemplate.queryForPage(nativeSearchQueryBuilder.build(), Goods.class);
-		//解析分页结果
+		// 解析分页结果
 		long totalElements = search.getTotalElements();
 		long totalPages = search.getTotalPages();
 		List<Goods> content = search.getContent();
-		//解析聚合结果
+		// 解析聚合结果
 		Aggregations aggregations = search.getAggregations();
 		List<Category> categories = parseCategoryAgg(aggregations.get(categoryAggName));
 		List<Brand> brands = parseBrandAgg(aggregations.get(brandAggName));
 
-		//完成规格参数聚合
+		// 完成规格参数聚合
 		List<Map<String, Object>> specs = new ArrayList<>(100);
 
 		if (categories != null && categories.size() == 1) {
-			//商品分类唯一，可以聚合规格参数
+			// 商品分类唯一，可以聚合规格参数
 			specs = buildSpecificationAgg(categories.get(0).getId(), basicQuery);
 		}
 
@@ -246,30 +243,30 @@ public class SearchService {
 	private List<Map<String, Object>> buildSpecificationAgg(Long cid, QueryBuilder basicQuery) {
 		try {
 			List<Map<String, Object>> specs = new ArrayList<>(100);
-			//1先知道对谁聚合
-			//1.1查询需要聚合的规格参数
+			// 1先知道对谁聚合
+			// 1.1查询需要聚合的规格参数
 			List<SpecParam> params = specificationClient.queryParam(null, cid, true);
-			//2聚合
+			// 2聚合
 			NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
-			//2.1带上查询条件
+			// 2.1带上查询条件
 			nativeSearchQueryBuilder.withQuery(basicQuery);
 			//2.2聚合
 			for (SpecParam param : params) {
 				String name = param.getName();
 				nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(name).field("specs." + name + ".keyword"));
 			}
-			//获取结果
+			// 获取结果
 			AggregatedPage<Goods> result = elasticsearchTemplate.queryForPage(nativeSearchQueryBuilder.build(), Goods.class);
 		/*Map<String, Aggregation> aggs = this.elasticsearchTemplate.query(nativeSearchQueryBuilder.build(),
 				SearchResponse::getAggregations).asMap();*/
 
-			//解析结果
+			// 解析结果
 			Aggregations aggregations = result.getAggregations();
 			for (SpecParam param : params) {
-				//规格参数名
+				// 规格参数名
 				String name = param.getName();
 				StringTerms terms = aggregations.get(name);
-				//准备map
+				// 准备map
 				Map<String, Object> map = new HashMap<>(100);
 				map.put("k", name);
 				map.put("options", terms.getBuckets()
@@ -323,7 +320,7 @@ public class SearchService {
 	 * 	构建基本查询条件
 	 */
 	private QueryBuilder buildBasicQueryWithFilter(SearchRequest request) {
-		//创建布尔
+		// 创建布尔
 		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 		// 基本查询条件
 		queryBuilder.must(QueryBuilders.matchQuery("all", request.getKey()));
@@ -333,7 +330,7 @@ public class SearchService {
 			String key = entry.getKey();
 			String value = entry.getValue();
 			// 商品分类和品牌要特殊处理
-			if (key != "cid3" && key != "brandId") {
+			if (!"cid3".equals(key) && !"brandId".equals(key)) {
 				key = "specs." + key + ".keyword";
 			}
 			// 字符串类型，进行term查询
@@ -346,11 +343,11 @@ public class SearchService {
 
 
 	public void createIndex(Long spuId) {
-		//查询spu
+		// 查询spu
 		Spu spu = goodsClient.querySpuById(spuId);
 		// 构建goods对象
 		Goods goods = buildGoods(spu);
-		//存入索引库
+		// 存入索引库
 		goodsRepository.save(goods);
 
 	}

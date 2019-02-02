@@ -60,7 +60,9 @@ public class UploadService {
 			StorePath storePath = fastFileStorageClient.uploadFile(file.getInputStream(), file.getSize(), extension, null);
 
 			//返回正常路径
-			return uploadProperties.getBaseUrl()+storePath.getFullPath();
+			String s = uploadProperties.getBaseUrl() + storePath.getFullPath();
+			System.out.println("s = " + s);
+			return s;
 		} catch (IOException e) {
 			//上传失败
 			e.printStackTrace();

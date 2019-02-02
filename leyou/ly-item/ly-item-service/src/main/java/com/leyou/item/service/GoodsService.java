@@ -110,10 +110,11 @@ public class GoodsService {
 		saveSkuAndStock(spu);
 
 		//发送mq消息
-		amqpTemplate.convertAndSend("item.insert",spu.getId());
+		amqpTemplate.convertAndSend("item.insert", spu.getId());
 
 	}
-	private void saveSkuAndStock(Spu spu){
+
+	private void saveSkuAndStock(Spu spu) {
 		//定义库存集合
 		List<Stock> stocks = new ArrayList<>();
 
@@ -141,6 +142,7 @@ public class GoodsService {
 		}
 
 	}
+
 	public SpuDetail querySpuDetailById(Long id) {
 		SpuDetail spuDetail = spuDetailMapper.selectByPrimaryKey(id);
 		if (spuDetail == null) {
@@ -194,18 +196,18 @@ public class GoodsService {
 		spu.setLastUpdateTime(null);
 		spu.setCreateTime(null);
 		int count = spuMapper.updateByPrimaryKeySelective(spu);
-		if (count!=1){
+		if (count != 1) {
 			throw new LyException(ExceptionEnum.GOODS_UPDATE_ERROR);
 		}
 		count = spuDetailMapper.updateByPrimaryKeySelective(spu.getSpuDetail());
-		if (count!=1){
+		if (count != 1) {
 			throw new LyException(ExceptionEnum.GOODS_UPDATE_ERROR);
 		}
 
 		saveSkuAndStock(spu);
 
 		//发送mq消息
-		amqpTemplate.convertAndSend("item.update",spu.getId());
+		amqpTemplate.convertAndSend("item.update", spu.getId());
 
 	}
 

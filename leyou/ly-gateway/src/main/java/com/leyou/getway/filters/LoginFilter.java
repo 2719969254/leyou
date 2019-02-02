@@ -1,3 +1,4 @@
+/*
 package com.leyou.getway.filters;
 
 import com.leyou.auth.utils.JwtUtils;
@@ -69,12 +70,14 @@ public class LoginFilter extends ZuulFilter {
         return null;
     }
 
-    /**
+    */
+/**
      * 判断请求URI是不是白名单中的URI
      *
      * @param requestURI
      * @return
-     */
+     *//*
+
     private Boolean isAllowPath(String requestURI) {
         boolean flag = false;
 
@@ -87,4 +90,4 @@ public class LoginFilter extends ZuulFilter {
         }
         return flag;
     }
-}
+}*/

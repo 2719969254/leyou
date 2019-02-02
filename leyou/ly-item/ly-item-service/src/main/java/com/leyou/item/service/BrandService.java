@@ -64,6 +64,8 @@ public class BrandService {
 
 	@Transactional(rollbackFor = LyException.class)
 	public void saveBrand(Brand brand, List<Long> cids) {
+		// 先将品牌id设置为null
+		brand.setId(null);
 		// 新增品牌
 		int insert = brandMapper.insert(brand);
 		if (insert != 1) {

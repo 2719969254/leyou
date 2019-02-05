@@ -1,4 +1,4 @@
-/*
+
 package com.leyou.getway.filters;
 
 import com.leyou.auth.utils.JwtUtils;
@@ -19,75 +19,74 @@ import javax.servlet.http.HttpServletRequest;
 @EnableConfigurationProperties({JWTProperties.class, FilterProperties.class})
 public class LoginFilter extends ZuulFilter {
 
-    private final JWTProperties props;
+	private final JWTProperties props;
 
-    private final FilterProperties filterProps;
+	private final FilterProperties filterProps;
 
-    @Autowired
-    public LoginFilter(JWTProperties props, FilterProperties filterProps) {
-        this.props = props;
-        this.filterProps = filterProps;
-    }
+	@Autowired
+	public LoginFilter(JWTProperties props, FilterProperties filterProps) {
+		this.props = props;
+		this.filterProps = filterProps;
+	}
 
-    @Override
-    public String filterType() {
-        return "pre";
-    }
+	@Override
+	public String filterType() {
+		return "pre";
+	}
 
-    @Override
-    public int filterOrder() {
-        return 5;
-    }
+	@Override
+	public int filterOrder() {
+		return 5;
+	}
 
-    @Override
-    public boolean shouldFilter() {
-        RequestContext ctx = RequestContext.getCurrentContext();
-        HttpServletRequest request = ctx.getRequest();
-        String requestURI = request.getRequestURI();
-        //判断白名单
-        return !isAllowPath(requestURI);
-    }
+	@Override
+	public boolean shouldFilter() {
+		RequestContext ctx = RequestContext.getCurrentContext();
+		HttpServletRequest request = ctx.getRequest();
+		String requestURI = request.getRequestURI();
+		//判断白名单
+		return !isAllowPath(requestURI);
+	}
 
-    @Override
-    public Object run() {
-        //获取上下文
-        RequestContext context = RequestContext.getCurrentContext();
-        //获取请求
-        HttpServletRequest request = context.getRequest();
-        String token = CookieUtils.getCookieValue(request, props.getCookieName());
-        try {
-            //从Token获取解析用户信息
-            JwtUtils.getUserInfo(props.getPublicKey(), token);
-            //解析成功，什么都不做，放行
+	@Override
+	public Object run() {
+		//获取上下文
+		RequestContext context = RequestContext.getCurrentContext();
+		//获取请求
+		HttpServletRequest request = context.getRequest();
+		String token = CookieUtils.getCookieValue(request, props.getCookieName());
+		try {
+			//从Token获取解析用户信息
+			JwtUtils.getUserInfo(props.getPublicKey(), token);
+			//解析成功，什么都不做，放行
 
-            //todo 如果做权限管理的话，在这做权限检验
-        } catch (Exception e) {
-            //检验出现异常，返回403
-            context.setSendZuulResponse(false);
-            context.setResponseStatusCode(403);
-            log.error("非法访问，未登录，地址：{}", request.getRemoteHost(), e);
-        }
-        return null;
-    }
+			//todo 如果做权限管理的话，在这做权限检验
+		} catch (Exception e) {
+			//检验出现异常，返回403
+			context.setSendZuulResponse(false);
+			context.setResponseStatusCode(403);
+			log.error("非法访问，未登录，地址：{}", request.getRemoteHost(), e);
+		}
+		return null;
+	}
 
-    */
-/**
-     * 判断请求URI是不是白名单中的URI
-     *
-     * @param requestURI
-     * @return
-     *//*
+	/**
+	 * 判断请求URI是不是白名单中的URI
+	 *
+	 * @param requestURI
+	 * @return
+	 */
 
-    private Boolean isAllowPath(String requestURI) {
-        boolean flag = false;
+	private Boolean isAllowPath(String requestURI) {
+		boolean flag = false;
 
-        for (String allowPath : filterProps.getAllowPaths()) {
-            if (requestURI.startsWith(allowPath)) {
-                //允许
-                flag = true;
-                break;
-            }
-        }
-        return flag;
-    }
-}*/
+		for (String allowPath : filterProps.getAllowPaths()) {
+			if (requestURI.startsWith(allowPath)) {
+				//允许
+				flag = true;
+				break;
+			}
+		}
+		return flag;
+	}
+}

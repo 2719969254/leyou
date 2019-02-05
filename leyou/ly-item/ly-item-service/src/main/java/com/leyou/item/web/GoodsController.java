@@ -37,12 +37,24 @@ public class GoodsController {
 		return ResponseEntity.ok(goodsService.querySpuByPageAndSort(page, rows, saleable, key));
 	}
 
+	/**
+	 * 商品新增
+	 *
+	 * @param spu
+	 * @return
+	 */
 	@PostMapping("/goods")
 	public ResponseEntity<Void> saveGoods(@RequestBody Spu spu) {
 		goodsService.saveGoods(spu);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
+	/**
+	 * 根据spu的id查询详情
+	 *
+	 * @param id
+	 * @return
+	 */
 	@GetMapping("/spu/detail/{id}")
 	public ResponseEntity<SpuDetail> querySpuDetailById(@PathVariable("id") Long id) {
 		SpuDetail spuDetail = goodsService.querySpuDetailById(id);
@@ -52,9 +64,31 @@ public class GoodsController {
 		return ResponseEntity.ok(spuDetail);
 	}
 
+	/**
+	 * 根据spu查询下面所有sku
+	 *
+	 * @param id
+	 * @return
+	 */
 	@GetMapping("sku/list")
 	public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long id) {
 		List<Sku> skuList = goodsService.querySkuBySpuId(id);
+		if (skuList == null || skuList.size() == 0) {
+			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);
+		}
+		return ResponseEntity.ok(skuList);
+	}
+
+
+	/**
+	 * 根据sku的id集合查询所有sku
+	 *
+	 * @param ids
+	 * @return
+	 */
+	@GetMapping("sku/list/ids")
+	public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("ids") List<Long> ids) {
+		List<Sku> skuList = goodsService.querySkuByIds(ids);
 		if (skuList == null || skuList.size() == 0) {
 			throw new LyException(ExceptionEnum.BRAND_NOT_FOUND);
 		}
@@ -81,13 +115,21 @@ public class GoodsController {
 
 
 	@GetMapping("spu/{id}")
-	public ResponseEntity<Spu> querySpuById(@PathVariable("id") Long id){
+	public ResponseEntity<Spu> querySpuById(@PathVariable("id") Long id) {
 		Spu spu = this.goodsService.querySpuById(id);
-		if(spu == null){
+		if (spu == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		return ResponseEntity.ok(spu);
 	}
 
+	@GetMapping("sku/{id}")
+	public ResponseEntity<Sku> querySkuById(@PathVariable("id")Long id){
+		Sku sku = this.goodsService.querySkuById(id);
+		if (sku == null){
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return ResponseEntity.ok(sku);
+	}
 
 }

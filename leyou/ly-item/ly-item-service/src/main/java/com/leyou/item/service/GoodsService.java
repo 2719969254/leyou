@@ -167,14 +167,7 @@ public class GoodsService {
 			}
 			sku.setStock(stock.getStock());
 		}*/
-		List<Long> ids = skuList.stream().map(Sku::getId).collect(Collectors.toList());
-		List<Stock> stockList = stockMapper.selectByIdList(ids);
-		if (CollectionUtils.isEmpty(stockList)) {
-			throw new LyException(ExceptionEnum.GOOD_STOCK_NOT_FOUND);
-		}
-		//我们把stock变成一个map，其key是sku的id，值是库存值
-		Map<Long, Long> stockMap = stockList.stream().collect(Collectors.toMap(Stock::getSkuId, Stock::getStock));
-		skuList.forEach(sku -> sku.setStock(stockMap.get(sku.getId())));
+		loadStockInSku(skuList);
 		return skuList;
 	}
 
@@ -223,5 +216,35 @@ public class GoodsService {
 		//查询Detail
 		spu.setSpuDetail(querySpuDetailById(id));
 		return spu;
+	}
+
+	public List<Sku> querySkuByIds(List<Long> ids) {
+		List<Sku> skuList = skuMapper.selectByIdList(ids);
+		if (CollectionUtils.isEmpty(skuList)) {
+			throw new LyException(ExceptionEnum.GOOD_SKU_NOT_FOUND);
+		}
+
+		loadStockInSku(skuList);
+		return skuList;
+	}
+
+	/**
+	 * 查询集合里的库存
+	 *
+	 * @param skuList
+	 */
+	private void loadStockInSku(List<Sku> skuList) {
+		List<Long> ids = skuList.stream().map(Sku::getId).collect(Collectors.toList());
+		List<Stock> stockList = stockMapper.selectByIdList(ids);
+		if (CollectionUtils.isEmpty(stockList)) {
+			throw new LyException(ExceptionEnum.GOOD_STOCK_NOT_FOUND);
+		}
+		//我们把stock变成一个map，其key是sku的id，值是库存值
+		Map<Long, Long> stockMap = stockList.stream().collect(Collectors.toMap(Stock::getSkuId, Stock::getStock));
+		skuList.forEach(sku -> sku.setStock(stockMap.get(sku.getId())));
+	}
+
+	public Sku querySkuById(Long id) {
+		return this.skuMapper.selectByPrimaryKey(id);
 	}
 }

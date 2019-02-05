@@ -5,7 +5,7 @@ spring:
     name: search-service
   data:
     elasticsearch:
-      cluster-name: elasticsearch
+      cluster-name: docker-cluster
       cluster-nodes: 47.95.234.255:9300
   jackson:
     default-property-inclusion: non_null

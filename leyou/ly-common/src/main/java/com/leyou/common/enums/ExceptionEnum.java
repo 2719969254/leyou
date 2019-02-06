@@ -35,6 +35,16 @@ public enum ExceptionEnum {
 	INVALID_USER_DATA(400, "用户数据类型不正确"),
 	INVALID_VERIFY_CODE(400, "无效验证码"),
 	INVALID_USER(400, "用户名或密码错误"),
+	CART_NOT_FOUND(404,"购物车为空"),
+	CREATE_ORDER_ERROR(500,"创建订单失败"),
+	STOCK_NOT_ENOUGH(500,"库存量不足"),
+	WXPAY_ORDER_ERROR(500,"微信下单失败"),
+	INVALID_SING_ERROR(400,"无效的签名异常"),
+	INVALID_ORDER_PARAM_ERROR(400,"订单参数异常"),
+	UPDATE_ORDER_STATUS_ERROR(500,"更新订单状态异常"),
+	ORDER_NOT_FOUND(404,"订单不存在"),
+	ORDER_DETAIL_NOT_FOUND(404,"订单详情不存在"),
+	ORDER_STATUS_NOT_FOUND(404,"订状态不存在"),
 	;
 	private Integer code;
 	private String msg;

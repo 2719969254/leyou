@@ -1,5 +1,6 @@
 package com.leyou.item.web;
 
+import com.leyou.common.dto.CartDTO;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.exception.LyException;
 import com.leyou.common.vo.PageResult;
@@ -132,4 +133,14 @@ public class GoodsController {
 		return ResponseEntity.ok(sku);
 	}
 
+
+	/**
+	 * 减库存
+	 * @param cartDTOS
+	 * @return
+	 */
+	@PutMapping("stock/decrease")
+	public ResponseEntity<Void> decreaseStock(@RequestBody List<CartDTO>  cartDTOS){
+		return ResponseEntity.ok(goodsService.decreaseStock(cartDTOS));
+	}
 }

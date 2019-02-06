@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/leyou/leyou.iml" filepath="$PROJECT_DIR$/leyou/leyou.iml" />
+      <module fileurl="file://$PROJECT_DIR$/leyou/ly-order/leyou-order-service/leyou-order-service.iml" filepath="$PROJECT_DIR$/leyou/ly-order/leyou-order-service/leyou-order-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-auth/ly-auth.iml" filepath="$PROJECT_DIR$/leyou/ly-auth/ly-auth.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-auth/ly-auth-common/ly-auth-common.iml" filepath="$PROJECT_DIR$/leyou/ly-auth/ly-auth-common/ly-auth-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/leyou/ly-auth/ly-auth-service/ly-auth-service.iml" filepath="$PROJECT_DIR$/leyou/ly-auth/ly-auth-service/ly-auth-service.iml" />

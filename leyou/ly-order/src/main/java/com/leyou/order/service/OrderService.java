@@ -12,6 +12,7 @@ import com.leyou.order.client.GoodsClient;
 import com.leyou.order.dto.AddressDTO;
 import com.leyou.order.enums.OrderStatusEnum;
 import com.leyou.order.enums.PayState;
+import com.leyou.order.interceptor.LoginInterceptor;
 import com.leyou.order.interceptor.UserInterceptor;
 import com.leyou.order.mapper.OrderDetailMapper;
 import com.leyou.order.mapper.OrderMapper;
@@ -64,7 +65,7 @@ public class OrderService {
         long orderId = idWorker.nextId();
         order.setOrderId(orderId);
         //1.2 用户信息
-        UserInfo user = UserInterceptor.getUser();
+        UserInfo user = LoginInterceptor.getLoginUser();
         order.setUserId(user.getId());
         order.setBuyerNick(user.getName());
         order.setBuyerRate(false);

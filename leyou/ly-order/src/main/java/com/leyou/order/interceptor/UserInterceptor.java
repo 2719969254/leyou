@@ -10,12 +10,15 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * @author MR.Tian
+ */
 @Slf4j
 public class UserInterceptor implements HandlerInterceptor {
 
 	private JwtProperties jwtProp;
 
-	private static final ThreadLocal<UserInfo> tl = new ThreadLocal<>();
+	private static final ThreadLocal<UserInfo> tl  = new ThreadLocal<>();
 
 	public UserInterceptor(JwtProperties jwtProp) {
 		this.jwtProp = jwtProp;
@@ -24,15 +27,15 @@ public class UserInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		String token = CookieUtils.getCookieValue(request, jwtProp.getCookieName());
-		try {
+		try{
 			//解析token
 			UserInfo user = JwtUtils.getInfoFromToken(token, jwtProp.getPublicKey());
 			//传递user
 			tl.set(user);
 			//放行
 			return true;
-		} catch (Exception e) {
-			log.error("[购物车服务]  解析用户身份失败", e);
+		}catch (Exception e){
+			log.error("[购物车服务]  解析用户身份失败" , e);
 			return false;
 		}
 	}
@@ -42,7 +45,7 @@ public class UserInterceptor implements HandlerInterceptor {
 		tl.remove();
 	}
 
-	public static UserInfo getUser() {
+	public static UserInfo getUser(){
 		return tl.get();
 	}
 }
